@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:clima/services/location.dart';
-import 'dart:convert';
+import 'package:clima/services/networking.dart';
+import 'package:clima/screens/location_screen.dart';
+//import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:loading_animations/loading_animations.dart';
 
 class LoadingScreen extends StatefulWidget {
   @override
@@ -9,38 +11,30 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
-  Location location = Location();
   @override
   void initState() {
     super.initState();
-    getLocation();
+    getLocationData();
   }
 
-  void getLocation() async {
+  void getLocationData() async {
+    Location location = Location();
     await location.getCurrentLocation();
     print(location.longitude);
     print(location.latitude);
-    getData();
-  }
 
-  void getData() async {
-    http.Response response = await http.get(
-        'http://api.openweathermap.org/data/2.5/weather?lat=${location.latitude}&lon=${location.latitude}&appid=a9af7265269786f3f09092f21801be03');
+    AppNetwork appNetwork = AppNetwork(
+        'http://api.openweathermap.org/data/2.5/weather?lat=${location.latitude}&lon=${location.longitude}&appid=a9af7265269786f3f09092f21801be03&units=metric');
+    var weatherData = await appNetwork.getData();
+    String cityName = weatherData['name'];
+    //print(weatherData);
 
-    if (response.statusCode == 200) {
-      String data = response.body;
-      //print(data);
-      var decodedData = jsonDecode(data);
-      String cityName = decodedData['name'];
-      print(cityName);
-      double temp = decodedData['main']['temp'];
-      print(temp);
-      int conditionNumber = decodedData['weather'][0]['id'];
-      print(conditionNumber);
-    } else {
-      String data = '';
-      print(response.statusCode);
-    }
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => LocationScreen(
+                  locationWeather: weatherData,
+                )));
   }
 
   // if the user didn't accept the first time
@@ -51,17 +45,12 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.blue.shade800,
       body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RaisedButton(
-              onPressed: () {
-                getLocation();
-              },
-              child: Text('Get Location'),
-            ),
-          ],
+        child: LoadingBouncingGrid.square(
+          backgroundColor: Colors.orange.shade700,
+          size: 40.0,
+          inverted: true,
         ),
       ),
     );
