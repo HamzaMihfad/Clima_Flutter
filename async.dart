@@ -14,7 +14,7 @@ void task1() {
   print('task1 complete');
 }
 
-Future task2() async {
+Future<String> task2() async {
   String str = 'empty';
   Duration threeSeconds = Duration(seconds: 3);
   //sleep(threeSeconds);
